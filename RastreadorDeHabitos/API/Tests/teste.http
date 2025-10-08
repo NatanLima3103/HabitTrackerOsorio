@@ -1,0 +1,9 @@
+#teste cadastro de usuario
+POST http://localhost:5000/usuarios
+Content-Type: application/json
+
+{
+  "nome": "João da Silva",
+  "email": "joao.silva@gmail.com",
+  "senha": "senhaSegura123"
+}

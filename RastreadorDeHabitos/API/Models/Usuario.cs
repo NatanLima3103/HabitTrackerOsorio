@@ -5,7 +5,7 @@ public class Usuario
 
     public Usuario()
     {
-        Habitos = []; //deixa uma lista de habitos vazia para criaçao de um usuario
+        Habitos = [];//deixa uma lista de habitos vazia para criaçao de um usuario
     }
 
     public int Id { get; set; }
