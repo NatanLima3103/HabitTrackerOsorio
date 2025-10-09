@@ -1,9 +1,19 @@
 #teste cadastro de usuario
-POST http://localhost:5000/usuarios
+POST http://localhost:5000/usuario/cadastrar
 Content-Type: application/json
 
 {
-  "nome": "João da Silva",
-  "email": "joao.silva@gmail.com",
-  "senha": "senhaSegura123"
+  "Nome": "Lucas Alves",
+  "Email": "lucas.alves@gmail.com",
+  "Senha": "12345"
+}
+
+###
+#teste login de usuario
+POST http://localhost:5000/usuario/login
+Content-Type: application/json
+
+{
+  "email": "lucas.alves@gmail.com",
+  "senha": "1235"
 }

@@ -16,7 +16,7 @@ public class Usuario
     [Required, EmailAddress]
     public string Email { get; set; } = string.Empty;
 
-    [Required, MinLength(6)]
+    [Required]
     public string Senha { get; set; } = string.Empty;
 
     public ICollection<Habito> Habitos { get; set; }
