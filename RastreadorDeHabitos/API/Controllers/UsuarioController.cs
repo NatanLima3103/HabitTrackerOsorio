@@ -1,9 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
-using API.Services; // namespace do UsuarioService
+using API.Services;
 using System;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Controller responsável pela gestão de usuários e autenticação no sistema.
+    /// 
+    /// Funcionalidades principais:
+    /// - Cadastro de novos usuários no sistema
+    /// - Autenticação (login) de usuários existentes
+    /// - Validação de credenciais e dados de entrada
+    /// 
+    /// Endpoints disponíveis:
+    /// POST /usuario/cadastrar - Cria uma nova conta de usuário
+    /// POST /usuario/login - Realiza login e autentica usuário
+    /// 
+    /// Este controller trabalha em conjunto com UsuarioService para executar
+    /// a lógica de negócio relacionada a usuários.
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class UsuarioController : ControllerBase
@@ -15,7 +30,7 @@ namespace API.Controllers
             _usuarioService = usuarioService;
         }
 
-        // -------- CADASTRO DE USUÁRIO --------
+        //CADASTRO DE USUÁRIO
         [HttpPost("cadastrar")]
         public IActionResult Cadastrar([FromBody] Usuario usuario)
         {

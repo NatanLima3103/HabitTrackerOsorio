@@ -2,11 +2,12 @@ using Microsoft.EntityFrameworkCore;
 
 public class HabitTrackerContext : DbContext
 {
-    public DbSet<Usuario> Usuarios {get; set; }
-    public DbSet<Habito> Habitos {get; set; }
-    public DbSet<RegistroDiario> RegistrosDiarios {get; set;}
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    public HabitTrackerContext(DbContextOptions<HabitTrackerContext> options)
+        : base(options)
     {
-        optionsBuilder.UseSqlite("Data Source=habitTracker.db");
     }
+
+    public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<Habito> Habitos { get; set; }
+    public DbSet<RegistroDiario> RegistrosDiarios { get; set; }
 }
