@@ -1,90 +1,129 @@
-using System;
-
-namespace API.Services;
-
-
 public class HabitoService
 {
-    // 1. Injetar o contexto do banco de dados, assim como no UsuarioService
     private readonly HabitTrackerContext _context;
 
-    // 2. O construtor recebe o DbContext via injeção de dependência
     public HabitoService(HabitTrackerContext context)
     {
         _context = context;
     }
 
-    
-    public Habito CriarHabito(string nome, string descricao, int usuarioId)
-    {
-        if (string.IsNullOrWhiteSpace(nome))
-        {
-            throw new System.Exception("O nome do hábito é obrigatório.");
-        }
-
-        
-        var usuario = _context.Usuarios.Find(usuarioId);
-        if (usuario == null)
-        {
-            throw new System.Exception("Usuário não encontrado.");
-        }
-
-        var novoHabito = new Habito
-        {
-            Nome = nome,
-            Descricao = descricao,
-            UsuarioId = usuarioId // Associa ao usuário logado
-        };
-
-        _context.Habitos.Add(novoHabito); 
-        _context.SaveChanges();          
-
-        return novoHabito;
-    }
-
-    
     public List<Habito> ListarHabitosDoUsuario(int usuarioId)
     {
-        return _context.Habitos
-                       .Where(h => h.UsuarioId == usuarioId)
-                       .ToList();
-    }
-    public bool AtualizarHabito(int habitoId, string novoNome, string novaDescricao, int usuarioId)
-    {
-        var habitoExistente = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
-
-        if (habitoExistente == null)
+        var listaHabitos = _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToList();
+        if (listaHabitos is null)
         {
-            return false;
+            throw new SystemException("Usuário não possui hábitos cadastrador");
         }
 
-        if (!string.IsNullOrWhiteSpace(novoNome))
+        Console.WriteLine("\n=== Seus Hábitos ===");
+        foreach (var h in listaHabitos)
         {
-            habitoExistente.Nome = novoNome;
+            Console.WriteLine($"ID: {h.Id} | Nome: {h.Nome} | Descrição: {h.Descricao}");
         }
-
-        if (!string.IsNullOrWhiteSpace(novaDescricao))
-        {
-            habitoExistente.Descricao = novaDescricao;
-        }
-
-        _context.SaveChanges(); 
-        return true;
+        Console.WriteLine();
+        return listaHabitos;
     }
 
-    
-    public bool ExcluirHabito(int habitoId, int usuarioId)
+    public Habito? CriarHabito(int usuarioId)
     {
-        var habitoParaExcluir = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
-
-        if (habitoParaExcluir == null)
+        Console.Write("Nome do hábito: ");
+        string nomeHabito = Console.ReadLine()!;
+        Console.Write("Descrição: ");
+        string descricaoHabito = Console.ReadLine()!;
+        if (string.IsNullOrWhiteSpace(nomeHabito) || string.IsNullOrWhiteSpace(descricaoHabito))
         {
+            Console.WriteLine("Todos os campos devem ser preenchidos!");
+            return null;
+        }
+        var habito = new Habito { Nome = nomeHabito, Descricao = descricaoHabito, UsuarioId = usuarioId };
+        _context.Habitos.Add(habito);
+        _context.SaveChanges();
+        Console.WriteLine("Hábito criado com sucesso!\n");
+        return habito;
+    }
+
+    public bool ExcluirHabito(int usuarioId)
+    {
+        Console.Write("ID do hábito a deletar: (Para ver todos os hábitos digite 0)");
+        if (int.TryParse(Console.ReadLine(), out int idHabito))
+        {   
+            if(idHabito == 0)
+            {
+                ListarHabitosDoUsuario(usuarioId);
+            }
+            var habito = _context.Habitos.FirstOrDefault(h => h.Id == idHabito && h.UsuarioId == usuarioId);
+            if (habito == null)
+            {
+                throw new SystemException("Habito com o id: " + idHabito + " não existe!");
+            }
+            Console.WriteLine("");
+            Console.WriteLine("Hábito ID: " + habito.Id + " deletado!");
+            Console.WriteLine("");
+            _context.Habitos.Remove(habito);
+            _context.SaveChanges();
+            return true;
+        }
+        else
+        {
+            Console.WriteLine("ID inválido!\n");
             return false;
         }
-        _context.Habitos.Remove(habitoParaExcluir); 
-        _context.SaveChanges();                    
+    }
 
-        return true;
+    public Habito? AtualizarHabito(int usuarioId)
+    {
+        while (true) // loop até atualizar com sucesso ou cancelar
+        {
+            Console.Write("ID do hábito a atualizar: (Para ver todos os hábitos digite 0 / Para cancelar digite -1) ");
+            string? input = Console.ReadLine();
+
+            if (!int.TryParse(input, out int habitoId))
+            {
+                Console.WriteLine("ID inválido!\n");
+                continue; // volta para pedir o ID novamente
+            }
+
+            if (habitoId == -1) // opção de cancelar
+            {
+                Console.WriteLine("Atualização cancelada.\n");
+                return null;
+            }
+
+            if (habitoId == 0) // apenas lista os hábitos
+            {
+                ListarHabitosDoUsuario(usuarioId);
+                continue; // volta para pedir o ID novamente
+            }
+
+            var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
+            if (habito == null)
+            {
+                Console.WriteLine($"Hábito com o id {habitoId} não existe!\n");
+                continue; // volta para pedir o ID novamente
+            }
+
+            // pede o novo nome e descrição
+            Console.Write("Novo nome do hábito: ");
+            var nome = Console.ReadLine();
+            Console.Write("Nova descrição do hábito: ");
+            var descricao = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(descricao))
+            {
+                Console.WriteLine("Todos os campos devem ser preenchidos!\n");
+                continue; // volta para pedir ID novamente
+            }
+
+            habito.Nome = nome!;
+            habito.Descricao = descricao!;
+            _context.Habitos.Update(habito);
+            _context.SaveChanges();
+
+            Console.WriteLine("Hábito atualizado com sucesso!");
+            Console.WriteLine($"ID: {habito.Id} | Nome: {habito.Nome} | Descrição: {habito.Descricao}\n");
+
+            return habito; // sai após atualização
+        }
     }
 
 }
