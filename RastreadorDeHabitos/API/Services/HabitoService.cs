@@ -18,7 +18,7 @@ public class HabitoService
         Console.WriteLine("\n=== Seus Hábitos ===");
         foreach (var h in listaHabitos)
         {
-            Console.WriteLine($"ID: {h.Id} | Nome: {h.Nome} | Descrição: {h.Descricao}");
+            Console.WriteLine($"ID: {h.Id} | Nome: {h.Nome} | Descrição: {h.Descricao} | Streak/Score: {h.Streak}");
         }
         Console.WriteLine();
         return listaHabitos;
@@ -125,5 +125,55 @@ public class HabitoService
             return habito; // sai após atualização
         }
     }
+    public int IncrementarStreak(int habitoId)
+    {
+        // Busca o hábito no banco
+        var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId);
+        if (habito == null)
+            throw new Exception("Hábito não encontrado.");
 
+        // Incrementa o streak
+        habito.Streak = habito.Streak + 1;
+
+        // Salva no banco
+        _context.SaveChanges();
+
+        // Retorna o novo streak
+        return habito.Streak; 
+    }
+
+    public void MarcarHabitoComoConcluido(int usuarioId, int habitoId)
+    {
+        var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
+        var hoje = DateTime.Today;
+        var registroHoje = _context.RegistrosDiarios
+            .FirstOrDefault(r => r.HabitoId == habitoId && r.Data == hoje);
+
+        // if (registroHoje == null)
+        // {
+        //     // Cria novo registro diário
+        //     registroHoje = new RegistroDiario
+        //     {
+        //         Data = hoje,
+        //         Cumprido = true,
+        //         HabitoId = habitoId,
+        //     };
+
+        //     _context.RegistrosDiarios.Add(registroHoje);
+        //     _context.SaveChanges();
+
+        //     Console.WriteLine($"✅ Hábito '{habito.Nome}' marcado como concluído hoje ({hoje:dd/MM/yyyy})!");
+        // }
+        // else        
+        if (habito == null)
+        {
+            Console.WriteLine("Hábito não encontrado!\n");
+            return;
+        }
+        int streak = IncrementarStreak(habitoId);
+
+        Console.WriteLine($"\n✅ Hábito '{habito.Nome}' marcado como concluído!");
+        Console.WriteLine($"🔥 Streak (Score) atual: {streak} vez(es) realizada!\n");
+        Console.WriteLine($"          🎉 PARABÉNS!! 🎉\n");
+    }
 }
