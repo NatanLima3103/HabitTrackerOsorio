@@ -18,7 +18,7 @@ public class HabitoService
         Console.WriteLine("\n=== Seus Hábitos ===");
         foreach (var h in listaHabitos)
         {
-            Console.WriteLine($"ID: {h.Id} | Nome: {h.Nome} | Descrição: {h.Descricao}");
+            Console.WriteLine($"ID: {h.Id} | Nome: {h.Nome} | Descrição: {h.Descricao} | Streak/Score: {h.Streak}");
         }
         Console.WriteLine();
         return listaHabitos;
@@ -125,37 +125,23 @@ public class HabitoService
             return habito; // sai após atualização
         }
     }
-    private int CalcularStreak(int habitoId) {
-    // Busca todos os registros concluídos do hábito, em ordem decrescente de data
-    var registros = _context.RegistrosDiarios
-        .Where(r => r.HabitoId == habitoId && r.Cumprido)
-        .OrderByDescending(r => r.Data)
-        .ToList();
-
-    if (registros.Count == 0)
-        return 0; // Nenhum registro concluído → streak = 0
-
-    int streak = 0;
-    DateTime diaEsperado = DateTime.Today;
-
-    foreach (var registro in registros)
+    public int IncrementarStreak(int habitoId)
     {
-        // Se o registro é do dia esperado, incrementa streak
-        if (registro.Data.Date == diaEsperado)
-        {
-            streak++;
-            diaEsperado = diaEsperado.AddDays(-1); // espera o dia anterior na próxima iteração
-        }
-        else if (registro.Data.Date < diaEsperado)
-        {
-            // Quebrou a sequência → para de contar
-            break;
-        }
-        // Se for maior que o esperado (futuro), ignora — só conta consecutivos para trás
+        // Busca o hábito no banco
+        var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId);
+        if (habito == null)
+            throw new Exception("Hábito não encontrado.");
+
+        // Incrementa o streak
+        habito.Streak = habito.Streak + 1;
+
+        // Salva no banco
+        _context.SaveChanges();
+
+        // Retorna o novo streak
+        return habito.Streak; 
     }
 
-    return streak;
-}
     public void MarcarHabitoComoConcluido(int usuarioId, int habitoId)
     {
         var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
@@ -183,16 +169,11 @@ public class HabitoService
         {
             Console.WriteLine("Hábito não encontrado!\n");
             return;
-        }      
-        else
-        {
-            // Já foi concluído hoje
-            CalcularStreak(habitoId);
-            Console.WriteLine($"\n⚠️ Você já marcou o hábito '{habito.Nome}' como concluído hoje!");
         }
+        int streak = IncrementarStreak(habitoId);
 
-        // Calcula e exibe o streak atual
-        int streak = CalcularStreak(habitoId);
-        Console.WriteLine($"🔥 Streak atual: {streak} dia(s) seguidos!\n");
+        Console.WriteLine($"\n✅ Hábito '{habito.Nome}' marcado como concluído!");
+        Console.WriteLine($"🔥 Streak (Score) atual: {streak} vez(es) realizada!\n");
+        Console.WriteLine($"          🎉 PARABÉNS!! 🎉\n");
     }
 }

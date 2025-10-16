@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations
 {
     [DbContext(typeof(HabitTrackerContext))]
-    partial class HabitTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20251016010421_AddStreakToHabito")]
+    partial class AddStreakToHabito
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.20");
@@ -29,9 +32,6 @@ namespace API.Migrations
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Streak")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("INTEGER");

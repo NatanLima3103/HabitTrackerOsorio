@@ -86,7 +86,7 @@ public class UsuarioService
                 return null;
             }
 
-            Console.WriteLine($"\nBem-vindo {usuario.Nome}!\n");
+            Console.WriteLine($"\nBem-vindo, {usuario.Nome}!\n");
             return usuario;
         }
         catch (Exception ex)
