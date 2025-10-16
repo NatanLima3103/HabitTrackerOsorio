@@ -16,6 +16,7 @@ builder.Services.AddDbContext<HabitTrackerContext>(options =>
 //Serviços
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<HabitoService>();
+builder.Services.AddScoped<StreakService>();
 
 var app = builder.Build();
 
@@ -26,5 +27,6 @@ db.Database.Migrate();
 
 var usuarioService = scope.ServiceProvider.GetRequiredService<UsuarioService>();
 var habitoService = scope.ServiceProvider.GetRequiredService<HabitoService>();
+var streakService = scope.ServiceProvider.GetRequiredService<StreakService>();
 
-TerminalUI.Iniciar(usuarioService, habitoService);
+TerminalUI.Iniciar(usuarioService, habitoService, streakService);

@@ -4,7 +4,7 @@ namespace API.UI;
 
 public static class TerminalUI
 {
-    public static void Iniciar(UsuarioService usuarioService, HabitoService habitoService)
+    public static void Iniciar(UsuarioService usuarioService, HabitoService habitoService, StreakService streakService)
     {
         Console.WriteLine("=== RASTREADOR DE HÁBITOS ===\n");
 
@@ -48,6 +48,7 @@ public static class TerminalUI
             Console.WriteLine("3 - Atualizar hábito");
             Console.WriteLine("4 - Deletar hábito");
             Console.WriteLine("5 - Marcar hábito como concluído");
+            Console.WriteLine("5 - Exibir streak atual");
             Console.WriteLine("0 - Sair");
             Console.Write("Opção: ");
             string opcao = Console.ReadLine()!;
@@ -75,7 +76,7 @@ public static class TerminalUI
                         Console.Write("\nDigite o ID do hábito que deseja marcar como concluído: ");
                         if (int.TryParse(Console.ReadLine(), out int habitoId))
                         {
-                            habitoService.MarcarHabitoComoConcluido(usuarioId, habitoId);
+                            streakService.MarcarHabitoComoConcluido(usuarioId, habitoId);
                         }
                         else
                         {
@@ -83,6 +84,9 @@ public static class TerminalUI
                         }
                         break;
                     }
+                    case "6":
+                        streakService.ExibirStreaksUsuario(usuarioId);
+                        break;
                 case "0":
                     {return;}
                 default:

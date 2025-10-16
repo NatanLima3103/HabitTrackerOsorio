@@ -2,12 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 public class Usuario
 {
-
-    public Usuario()
-    {
-        Habitos = [];//deixa uma lista de habitos vazia para criaçao de um usuario
-    }
-
     public int Id { get; set; }
 
     [Required]
@@ -19,5 +13,7 @@ public class Usuario
     [Required]
     public string Senha { get; set; } = string.Empty;
 
-    public ICollection<Habito> Habitos { get; set; }
+
+    public int Streak { get; set; } = 0; // streak geral
+    public ICollection<Habito> Habitos { get; set; } = [];
 }

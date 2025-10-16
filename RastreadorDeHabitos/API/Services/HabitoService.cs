@@ -15,21 +15,32 @@ public class HabitoService
             throw new SystemException("Usuário não possui hábitos cadastrador");
         }
 
-        Console.WriteLine("\n=== Seus Hábitos ===");
+        
+        var hoje = DateTime.Today;       
+
+        Console.WriteLine("\n====== Seus Hábitos =====");
         foreach (var h in listaHabitos)
         {
-            Console.WriteLine($"ID: {h.Id} | Nome: {h.Nome} | Descrição: {h.Descricao} | Streak/Score: {h.Streak}");
+            // Verifica se existe um registro concluído hoje
+            bool concluidoHoje = _context.RegistrosDiarios
+            .Any(r => r.HabitoId == h.Id && r.Data.Date == hoje && r.Cumprido);
+            string status = concluidoHoje ? "✅ Concluído hoje" : "❌ Não concluído hoje";
+            
+            Console.WriteLine($"ID: {h.Id} | Nome: {h.Nome} | Descrição: {h.Descricao} | Status: {status}");
         }
-        Console.WriteLine();
+        Console.WriteLine("==========================\n");
         return listaHabitos;
     }
 
     public Habito? CriarHabito(int usuarioId)
     {
+        Console.WriteLine("\n===== Criar Hábito =====");
         Console.Write("Nome do hábito: ");
         string nomeHabito = Console.ReadLine()!;
         Console.Write("Descrição: ");
         string descricaoHabito = Console.ReadLine()!;
+        Console.WriteLine("==========================\n");
+
         if (string.IsNullOrWhiteSpace(nomeHabito) || string.IsNullOrWhiteSpace(descricaoHabito))
         {
             Console.WriteLine("Todos os campos devem ser preenchidos!");
@@ -38,35 +49,57 @@ public class HabitoService
         var habito = new Habito { Nome = nomeHabito, Descricao = descricaoHabito, UsuarioId = usuarioId };
         _context.Habitos.Add(habito);
         _context.SaveChanges();
-        Console.WriteLine("Hábito criado com sucesso!\n");
+        Console.WriteLine("✅ Hábito criado com sucesso!\n");
         return habito;
     }
 
-    public bool ExcluirHabito(int usuarioId)
+    public void ExcluirHabito(int usuarioId)
     {
-        Console.Write("ID do hábito a deletar: (Para ver todos os hábitos digite 0)");
-        if (int.TryParse(Console.ReadLine(), out int idHabito))
-        {   
-            if(idHabito == 0)
+
+        Console.WriteLine("\n===== Excluir Hábito =====");
+        while (true)
+        {
+            Console.Write("ID do hábito a deletar (Para ver todos os hábitos digite 0 / Para cancelar digite -1): ");
+            string? input = Console.ReadLine();
+
+            if (!int.TryParse(input, out int idHabito))
+            {
+                Console.WriteLine("❌ ID inválido! Tente novamente.\n");
+                continue; // volta para pedir novamente
+            }
+
+            if (idHabito == -1) // opção de cancelar
+            {
+                Console.WriteLine("🛑 Exclusão cancelada.\n");
+                break;
+            }
+
+            if (idHabito == 0) // lista hábitos
             {
                 ListarHabitosDoUsuario(usuarioId);
+                continue; // volta para pedir novamente
             }
+
             var habito = _context.Habitos.FirstOrDefault(h => h.Id == idHabito && h.UsuarioId == usuarioId);
             if (habito == null)
             {
-                throw new SystemException("Habito com o id: " + idHabito + " não existe!");
+                Console.WriteLine($"⚠️ Hábito com o id {idHabito} não existe!\n");
+                continue; // volta para pedir novamente
             }
-            Console.WriteLine("");
-            Console.WriteLine("Hábito ID: " + habito.Id + " deletado!");
-            Console.WriteLine("");
-            _context.Habitos.Remove(habito);
-            _context.SaveChanges();
-            return true;
-        }
-        else
-        {
-            Console.WriteLine("ID inválido!\n");
-            return false;
+
+            try
+            {
+                _context.Habitos.Remove(habito);
+                _context.SaveChanges();
+
+                Console.WriteLine($"✅ Hábito ID: {habito.Id} deletado com sucesso!\n");
+                break; // saiu do loop após deletar
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Ocorreu um erro ao deletar o hábito: {ex.Message}\n");
+                break; // sai do loop se ocorrer erro grave
+            }
         }
     }
 
@@ -79,7 +112,7 @@ public class HabitoService
 
             if (!int.TryParse(input, out int habitoId))
             {
-                Console.WriteLine("ID inválido!\n");
+                Console.WriteLine("❌ ID inválido!\n");
                 continue; // volta para pedir o ID novamente
             }
 
@@ -125,55 +158,5 @@ public class HabitoService
             return habito; // sai após atualização
         }
     }
-    public int IncrementarStreak(int habitoId)
-    {
-        // Busca o hábito no banco
-        var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId);
-        if (habito == null)
-            throw new Exception("Hábito não encontrado.");
-
-        // Incrementa o streak
-        habito.Streak = habito.Streak + 1;
-
-        // Salva no banco
-        _context.SaveChanges();
-
-        // Retorna o novo streak
-        return habito.Streak; 
-    }
-
-    public void MarcarHabitoComoConcluido(int usuarioId, int habitoId)
-    {
-        var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
-        var hoje = DateTime.Today;
-        var registroHoje = _context.RegistrosDiarios
-            .FirstOrDefault(r => r.HabitoId == habitoId && r.Data == hoje);
-
-        // if (registroHoje == null)
-        // {
-        //     // Cria novo registro diário
-        //     registroHoje = new RegistroDiario
-        //     {
-        //         Data = hoje,
-        //         Cumprido = true,
-        //         HabitoId = habitoId,
-        //     };
-
-        //     _context.RegistrosDiarios.Add(registroHoje);
-        //     _context.SaveChanges();
-
-        //     Console.WriteLine($"✅ Hábito '{habito.Nome}' marcado como concluído hoje ({hoje:dd/MM/yyyy})!");
-        // }
-        // else        
-        if (habito == null)
-        {
-            Console.WriteLine("Hábito não encontrado!\n");
-            return;
-        }
-        int streak = IncrementarStreak(habitoId);
-
-        Console.WriteLine($"\n✅ Hábito '{habito.Nome}' marcado como concluído!");
-        Console.WriteLine($"🔥 Streak (Score) atual: {streak} vez(es) realizada!\n");
-        Console.WriteLine($"          🎉 PARABÉNS!! 🎉\n");
-    }
+    
 }

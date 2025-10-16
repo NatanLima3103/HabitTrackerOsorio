@@ -14,7 +14,9 @@ public class UsuarioService
 
     public void CadastroUsuario()
     {
-        Console.WriteLine("=== CADASTRO ===");
+        Console.WriteLine("\n====================");
+        Console.WriteLine("      CADASTRO          ");
+        Console.WriteLine("====================\n");
         Console.Write("Nome: ");
         string nome = Console.ReadLine()!;
         Console.Write("Email: ");
@@ -48,10 +50,11 @@ public class UsuarioService
                 Senha = senhaHash
             };
 
+
             _context.Usuarios.Add(novoUsuario);
             _context.SaveChanges();
 
-            Console.WriteLine($"Usuário {novoUsuario.Nome} cadastrado com sucesso!\n");
+            Console.WriteLine($"\n✅ Usuário {novoUsuario.Nome} cadastrado com sucesso! 🎉\n");
         }
         catch (Exception ex)
         {
@@ -62,7 +65,11 @@ public class UsuarioService
 
     public Usuario? LoginUsuario()
     {
-        Console.WriteLine("=== LOGIN ===");
+
+        Console.WriteLine("\n====================");
+        Console.WriteLine("      LOGIN          ");
+        Console.WriteLine("====================\n");
+
         Console.Write("Email: ");
         string email = Console.ReadLine()!;
         Console.Write("Senha: ");
@@ -85,8 +92,11 @@ public class UsuarioService
                 Console.WriteLine("Senha incorreta!\n");
                 return null;
             }
+            
+            Console.WriteLine("\n👋 Bem-vindo ao Rastreador de Hábitos!\n");
+            Console.WriteLine($"\nBem-vindo, {usuario.Nome}!");
+            Console.WriteLine($"🔥 Streak atual: {usuario.Streak} dias!\n");
 
-            Console.WriteLine($"\nBem-vindo, {usuario.Nome}!\n");
             return usuario;
         }
         catch (Exception ex)
