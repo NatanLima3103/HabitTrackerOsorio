@@ -125,5 +125,74 @@ public class HabitoService
             return habito; // sai após atualização
         }
     }
+    private int CalcularStreak(int habitoId) {
+    // Busca todos os registros concluídos do hábito, em ordem decrescente de data
+    var registros = _context.RegistrosDiarios
+        .Where(r => r.HabitoId == habitoId && r.Cumprido)
+        .OrderByDescending(r => r.Data)
+        .ToList();
 
+    if (registros.Count == 0)
+        return 0; // Nenhum registro concluído → streak = 0
+
+    int streak = 0;
+    DateTime diaEsperado = DateTime.Today;
+
+    foreach (var registro in registros)
+    {
+        // Se o registro é do dia esperado, incrementa streak
+        if (registro.Data.Date == diaEsperado)
+        {
+            streak++;
+            diaEsperado = diaEsperado.AddDays(-1); // espera o dia anterior na próxima iteração
+        }
+        else if (registro.Data.Date < diaEsperado)
+        {
+            // Quebrou a sequência → para de contar
+            break;
+        }
+        // Se for maior que o esperado (futuro), ignora — só conta consecutivos para trás
+    }
+
+    return streak;
+}
+    public void MarcarHabitoComoConcluido(int usuarioId, int habitoId)
+    {
+        var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
+        var hoje = DateTime.Today;
+        var registroHoje = _context.RegistrosDiarios
+            .FirstOrDefault(r => r.HabitoId == habitoId && r.Data == hoje);
+
+        // if (registroHoje == null)
+        // {
+        //     // Cria novo registro diário
+        //     registroHoje = new RegistroDiario
+        //     {
+        //         Data = hoje,
+        //         Cumprido = true,
+        //         HabitoId = habitoId,
+        //     };
+
+        //     _context.RegistrosDiarios.Add(registroHoje);
+        //     _context.SaveChanges();
+
+        //     Console.WriteLine($"✅ Hábito '{habito.Nome}' marcado como concluído hoje ({hoje:dd/MM/yyyy})!");
+        // }
+        // else        
+        if (habito == null)
+        {
+            Console.WriteLine("Hábito não encontrado!\n");
+            return;
+        }      
+        else
+        {
+            // Já foi concluído hoje
+            CalcularStreak(habitoId);
+            Console.WriteLine($"\n⚠️ Você já marcou o hábito '{habito.Nome}' como concluído hoje!");
+        }
+
+        // Calcula e exibe o streak atual
+        int streak = CalcularStreak(habitoId);
+        Console.WriteLine($"🔥 Streak atual: {streak} dia(s) seguidos!\n");
+    }
 }

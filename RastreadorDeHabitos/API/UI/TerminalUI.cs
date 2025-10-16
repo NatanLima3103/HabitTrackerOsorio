@@ -47,6 +47,7 @@ public static class TerminalUI
             Console.WriteLine("2 - Criar hábito");
             Console.WriteLine("3 - Atualizar hábito");
             Console.WriteLine("4 - Deletar hábito");
+            Console.WriteLine("5 - Marcar hábito como concluído");
             Console.WriteLine("0 - Sair");
             Console.Write("Opção: ");
             string opcao = Console.ReadLine()!;
@@ -67,6 +68,21 @@ public static class TerminalUI
                 case "4":
                     {habitoService.ExcluirHabito(usuarioId);
                     break;}
+                case "5":
+                    {
+                        habitoService.ListarHabitosDoUsuario(usuarioId);
+
+                        Console.Write("\nDigite o ID do hábito que deseja marcar como concluído: ");
+                        if (int.TryParse(Console.ReadLine(), out int habitoId))
+                        {
+                            habitoService.MarcarHabitoComoConcluido(usuarioId, habitoId);
+                        }
+                        else
+                        {
+                            Console.WriteLine("ID inválido. Tente novamente.");
+                        }
+                        break;
+                    }
                 case "0":
                     {return;}
                 default:
