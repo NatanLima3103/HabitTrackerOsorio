@@ -9,7 +9,6 @@ public class Habito
     public string Descricao {get; set; } = string.Empty;
     public int UsuarioId {get; set; } //Chave estrangeira para conectar ao usuário.
     public Usuario? Usuario { get; set; }
-
-    public int Streak { get; set; } = 0;
+    public DateTime CriadoEm { get; set; } = DateTime.Now;
     public ICollection<RegistroDiario> Registros { get; set; } = [];
 }

@@ -12,8 +12,6 @@ public class Usuario
 
     [Required]
     public string Senha { get; set; } = string.Empty;
-
-
     public int Streak { get; set; } = 0; // streak geral
     public ICollection<Habito> Habitos { get; set; } = [];
 }

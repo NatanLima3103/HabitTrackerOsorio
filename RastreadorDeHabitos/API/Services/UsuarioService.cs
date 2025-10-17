@@ -3,29 +3,41 @@ namespace API.Services;
 public class UsuarioService
 {
     private readonly HabitTrackerContext _context;
-    private readonly IConfiguration _configuration; // Adicionado para ler as configurações
 
     // Construtor modificado para receber IConfiguration
     public UsuarioService(HabitTrackerContext context, IConfiguration configuration)
     {
         _context = context;
-        _configuration = configuration;
     }
 
     public void CadastroUsuario()
     {
         Console.WriteLine("\n====================");
         Console.WriteLine("      CADASTRO          ");
-        Console.WriteLine("====================\n");
+        Console.WriteLine("====================");
+        Console.WriteLine("Digite 0 a qualquer momento para cancelar.\n");
         Console.Write("Nome: ");
         string nome = Console.ReadLine()!;
+        Console.WriteLine("Cadastro cancelado.\n");
+        if (nome == "0") return;
+
         Console.Write("Email: ");
         string email = Console.ReadLine()!;
+        Console.WriteLine("Cadastro cancelado.\n");
+        if (email == "0") return;        
+
         Console.Write("Senha: ");
         string senha = Console.ReadLine()!;
+        Console.WriteLine("Cadastro cancelado.\n");
+        if (senha == "0") return;
 
         try
-        {
+        {   
+            if (nome == "0" || email == "0" || senha == "0")
+            {
+                Console.WriteLine("Cadastro cancelado.\n");
+                return;
+            }
             // Verifica se os campos não estão vazios
             if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(senha))
             {
@@ -37,6 +49,12 @@ public class UsuarioService
             if (_context.Usuarios.Any(x => x.Email.ToLower() == email.ToLower()))
             {
                 Console.WriteLine("Este e-mail já está cadastrado.\n");
+                return;
+            }
+            //valida formato do email
+            if (!System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            {
+                Console.WriteLine("Formato de e-mail inválido.\n");
                 return;
             }
 
