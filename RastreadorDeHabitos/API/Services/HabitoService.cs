@@ -10,7 +10,7 @@ public class HabitoService
     public List<Habito> ListarHabitosDoUsuario(int usuarioId)
     {
         var listaHabitos = _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToList();
-        if (listaHabitos is null)
+        if (listaHabitos.Count == 0)
         {
             throw new SystemException("Usuário não possui hábitos cadastrador");
         }
@@ -104,7 +104,8 @@ public class HabitoService
     }
 
     public Habito? AtualizarHabito(int usuarioId)
-    {
+    {   
+        Console.WriteLine("\n===== Atualizar Hábito =====");        
         while (true) // loop até atualizar com sucesso ou cancelar
         {
             Console.Write("ID do hábito a atualizar: (Para ver todos os hábitos digite 0 / Para cancelar digite -1) ");
@@ -135,20 +136,15 @@ public class HabitoService
                 continue; // volta para pedir o ID novamente
             }
 
-            // pede o novo nome e descrição
-            Console.Write("Novo nome do hábito: ");
+            // pede o novo nome e descrição, caso vazia mantem valor antigo
+            Console.Write($"Novo nome do hábito (atual: {habito.Nome}): ");
             var nome = Console.ReadLine();
-            Console.Write("Nova descrição do hábito: ");
+            Console.Write($"Nova descrição (atual: {habito.Descricao}): ");
             var descricao = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(descricao))
-            {
-                Console.WriteLine("Todos os campos devem ser preenchidos!\n");
-                continue; // volta para pedir ID novamente
-            }
+            habito.Nome = string.IsNullOrWhiteSpace(nome) ? habito.Nome : nome;
+            habito.Descricao = string.IsNullOrWhiteSpace(descricao) ? habito.Descricao : descricao;
 
-            habito.Nome = nome!;
-            habito.Descricao = descricao!;
             _context.Habitos.Update(habito);
             _context.SaveChanges();
 

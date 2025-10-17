@@ -48,7 +48,7 @@ public static class TerminalUI
             Console.WriteLine("3 - Atualizar hábito");
             Console.WriteLine("4 - Deletar hábito");
             Console.WriteLine("5 - Marcar hábito como concluído");
-            Console.WriteLine("5 - Exibir streak atual");
+            Console.WriteLine("6 - Exibir streak atual");
             Console.WriteLine("0 - Sair");
             Console.Write("Opção: ");
             string opcao = Console.ReadLine()!;
