@@ -12,7 +12,9 @@ public class HabitoService
         var listaHabitos = _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToList();
         if (listaHabitos.Count == 0)
         {
-            throw new SystemException("Usuário não possui hábitos cadastrador");
+            Console.WriteLine("\nVocê ainda não possui hábitos cadastrados.");
+            Console.WriteLine("Use a opção 2 para criar seu primeiro hábito.\n");
+            return listaHabitos;
         }
 
         

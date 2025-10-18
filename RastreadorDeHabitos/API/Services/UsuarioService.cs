@@ -18,26 +18,30 @@ public class UsuarioService
         Console.WriteLine("Digite 0 a qualquer momento para cancelar.\n");
         Console.Write("Nome: ");
         string nome = Console.ReadLine()!;
-        Console.WriteLine("Cadastro cancelado.\n");
-        if (nome == "0") return;
+        if (nome == "0")
+        {
+            Console.WriteLine("Cadastro cancelado.\n");
+            return;  
+        } 
 
         Console.Write("Email: ");
         string email = Console.ReadLine()!;
-        Console.WriteLine("Cadastro cancelado.\n");
-        if (email == "0") return;        
+        if (email == "0")
+        {
+            Console.WriteLine("Cadastro cancelado.\n");
+            return;  
+        }       
 
         Console.Write("Senha: ");
         string senha = Console.ReadLine()!;
-        Console.WriteLine("Cadastro cancelado.\n");
-        if (senha == "0") return;
+        if (senha == "0")
+        {
+            Console.WriteLine("Cadastro cancelado.\n");
+            return;  
+        } 
 
         try
         {   
-            if (nome == "0" || email == "0" || senha == "0")
-            {
-                Console.WriteLine("Cadastro cancelado.\n");
-                return;
-            }
             // Verifica se os campos não estão vazios
             if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(senha))
             {
