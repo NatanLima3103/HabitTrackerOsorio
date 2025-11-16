@@ -1,5 +1,5 @@
 ###Listar habitos do usuário
-GET http://localhost:5000/api/habitos/usuario/1
+GET http://localhost:5000/api/habitos/usuario/2
 
 ###Cadastrar usuário
 POST http://localhost:5000/api/usuario/cadastrar
@@ -18,7 +18,7 @@ Content-Type: application/json
 {
     "Nome": "Ler",
     "Descricao": "Ler 10 pgs",
-    "UsuarioId": 1
+    "UsuarioId": 2
 }
 
 ###Deletar habitos
