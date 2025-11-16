@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
+namespace API.Models;
 public class Usuario
 {
     public int Id { get; set; }
@@ -14,4 +14,5 @@ public class Usuario
     public string Senha { get; set; } = string.Empty;
     public int Streak { get; set; } = 0;
     public ICollection<Habito> Habitos { get; set; } = [];
+    public DateTime UltimaAtualizacaoStreak { get; set; } = DateTime.MinValue;
 }

@@ -1,172 +1,100 @@
+using API.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 
-namespace API.Services;
-
-public class StreakService
+namespace API.Services
 {
-
-    private readonly HabitTrackerContext _context;
-
-    public StreakService(HabitTrackerContext context)
+    public class StreakService
     {
-        _context = context;
-    }
+        private readonly HabitTrackerContext _context;
 
-    public void MarcarHabitoComoConcluido(int usuarioId, int habitoId)
-    {
-        var habito = _context.Habitos.FirstOrDefault(h => h.Id == habitoId && h.UsuarioId == usuarioId);
-        if (habito == null)
+        public StreakService(HabitTrackerContext context)
         {
-            Console.WriteLine("Hábito não encontrado!\n");
-            return;
+            _context = context;
         }
 
-        var hoje = DateTime.Today;
-
-        // busca se o o habito ja foi concluido hoje
-        var registroHoje = _context.RegistrosDiarios
-            .AsEnumerable()
-            .FirstOrDefault(r =>
-                r.HabitoId == habitoId &&
-                r.Data.Date == hoje);
-
-        // Já foi concluído hoje
-        if (registroHoje != null && registroHoje.Cumprido)
+        public (string, int) VerificarConclusaoDiaria(int usuarioId)
         {
-            Console.WriteLine($"\n⚠️ O hábito '{habito.Nome}' já foi concluído hoje!\n");
-            return;
-        }
+            var hoje = DateTime.Today;
 
-        // Se ainda não existe registro hoje, cria
-        if (registroHoje == null)
-        {
-            registroHoje = new RegistroDiario
+            var habitosUsuario = _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToList();
+            if (habitosUsuario.Count == 0)
+                return (string.Empty, 0);
+
+            var concluidosHoje = _context.RegistrosDiarios
+                .Where(r => r.Habito.UsuarioId == usuarioId && r.Data.Date == hoje && r.Cumprido)
+                .Select(r => r.HabitoId)
+                .Distinct()
+                .ToList();
+
+            if (concluidosHoje.Count == habitosUsuario.Count)
             {
-                HabitoId = habitoId,
-                Data = DateTime.Now,
-                Cumprido = true
-            };
-            _context.RegistrosDiarios.Add(registroHoje);
+                // Chama a função privada desta classe
+                return AtualizarStreakUsuario(usuarioId);
+            }
+            else
+            {
+                int faltam = habitosUsuario.Count - concluidosHoje.Count;
+                if (faltam > 0)
+                    return ($"Ainda faltam {faltam} hábito{(faltam > 1 ? "s" : "")} para fechar o dia!", 0);
+            }
+            return (string.Empty, 0);
         }
-        else
+
+        private (string, int) AtualizarStreakUsuario(int usuarioId)
         {
-            registroHoje.Cumprido = true;
-            _context.RegistrosDiarios.Update(registroHoje);
+            var hoje = DateTime.Today;
+            var ontem = hoje.AddDays(-1);
+
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
+            if (usuario == null) return ("Usuário não encontrado.", 0);
+
+            var habitosUsuarioOntem = _context.Habitos
+                .Where(h => h.UsuarioId == usuarioId && h.CriadoEm.Date <= ontem)
+                .ToList();
+
+            var concluidosOntem = _context.RegistrosDiarios
+                .Where(r => r.Habito.UsuarioId == usuarioId &&
+                            r.Data.Date == ontem &&
+                            r.Cumprido)
+                .Select(r => r.HabitoId)
+                .Distinct()
+                .ToList();
+
+            bool manteveSequencia = false;
+            if (habitosUsuarioOntem.Count > 0)
+            {
+                manteveSequencia = concluidosOntem.Count == habitosUsuarioOntem.Count;
+            }
+            else
+            {
+                manteveSequencia = true;
+            }
+
+            if (usuario.UltimaAtualizacaoStreak.Date == hoje)
+            {
+                return ($"Streak já atualizado hoje: {usuario.Streak} dias.", usuario.Streak);
+            }
+
+            if (manteveSequencia)
+            {
+                usuario.Streak++;
+            }
+            else
+            {
+                usuario.Streak = 1;
+            }
+
+            usuario.UltimaAtualizacaoStreak = hoje;
+            _context.Usuarios.Update(usuario);
+            _context.SaveChanges();
+
+            string mensagem = manteveSequencia
+                ? $"Você manteve sua sequência! Streak atual: {usuario.Streak} dias!"
+                : $"Streak iniciado ou atualizado. Streak atual: {usuario.Streak}";
+
+            return (mensagem, usuario.Streak);
         }
-
-        _context.SaveChanges();
-
-        Console.WriteLine($"\n✅ Hábito '{habito.Nome}' marcado como concluído!\n");
-
-        // Verifica se todos foram concluídos
-        VerificarConclusaoDiaria(usuarioId);
     }
-
-
-    private void VerificarConclusaoDiaria(int usuarioId)
-    {
-        var hoje = DateTime.Today;
-
-        // Todos os hábitos do usuário
-        var habitosUsuario = _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToList();
-
-        // Hábitos concluídos hoje
-        var concluidosHoje = _context.RegistrosDiarios
-            .Where(r => r.Habito.UsuarioId == usuarioId && r.Data.Date == hoje && r.Cumprido)
-            .Select(r => r.HabitoId)
-            .Distinct()
-            .ToList();
-
-        if (concluidosHoje.Count == habitosUsuario.Count && habitosUsuario.Count > 0)
-        {
-            Console.WriteLine("🔥 Todos os hábitos foram concluídos hoje!");
-            AtualizarStreakUsuario(usuarioId);
-        }
-        else
-        {
-            int faltam = habitosUsuario.Count - concluidosHoje.Count;
-            if (faltam > 0)
-                Console.WriteLine($"Ainda faltam {faltam} hábito{(faltam > 1 ? "s" : "")} para fechar o dia!\n");
-        }
-    }
-
-    private void AtualizarStreakUsuario(int usuarioId)
-    {
-        var hoje = DateTime.Today;
-        var ontem = hoje.AddDays(-1);
-
-        var usuario = _context.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
-        if (usuario == null) return;
-
-        // Busca hábitos do usuário criados até hoje
-        var habitosUsuario = _context.Habitos
-            .Where(h => h.UsuarioId == usuarioId && h.CriadoEm.Date <= hoje)
-            .ToList();
-
-        // Hábitos concluídos ontem
-        var concluidosOntem = _context.RegistrosDiarios
-            .Where(r => r.Habito.UsuarioId == usuarioId &&
-                        r.Data.Date == ontem &&
-                        r.Cumprido)
-            .Select(r => r.HabitoId)
-            .Distinct()
-            .ToList();
-
-        bool teveRegistrosOntem = concluidosOntem.Count > 0;
-
-        // Se ontem não havia hábitos ou nenhum foi concluído, não reinicia — começa do 1
-        bool manteveSequencia = teveRegistrosOntem && (concluidosOntem.Count == habitosUsuario.Count);
-
-        if (!teveRegistrosOntem && usuario.Streak == 0)
-        {
-            usuario.Streak = 1; // primeiro dia de streak
-        }
-        else
-        {
-            usuario.Streak = manteveSequencia ? usuario.Streak + 1 : 1;
-        }
-
-        _context.Usuarios.Update(usuario);
-        _context.SaveChanges();
-
-        Console.WriteLine(manteveSequencia
-            ? $"🔥 Você manteve sua sequência! Streak atual: {usuario.Streak} dias!"
-            : $"✅ Streak iniciado ou atualizado. Streak atual: {usuario.Streak}");
-    }
-
-
-
-    public void ExibirStreaksUsuario(int usuarioId)
-    {
-        var usuario = _context.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
-        if (usuario == null)
-        {
-            Console.WriteLine("⚠️ Usuário não encontrado!\n");
-            return;
-        }
-
-        var hoje = DateTime.Today;
-        var habitos = _context.Habitos.Where(h => h.UsuarioId == usuarioId).ToList();
-
-        if (habitos.Count == 0)
-        {
-            Console.WriteLine("⚠️ Nenhum hábito cadastrado para este usuário.\n");
-            return;
-        }
-
-        Console.WriteLine("\n====== Seus Streaks =====");
-        Console.WriteLine($"Streak total do usuário: {usuario.Streak} dias 🔥\n");
-
-        foreach (var h in habitos)
-        {
-            bool concluidoHoje = _context.RegistrosDiarios
-                .Any(r => r.HabitoId == h.Id && r.Data.Date == hoje && r.Cumprido);
-
-            string statusHoje = concluidoHoje ? "✅ Concluído hoje" : "❌ Não concluído hoje";
-            Console.WriteLine($"Hábito: {h.Nome} | {statusHoje}");
-        }
-
-        Console.WriteLine("==========================\n");
-    }
-
 }

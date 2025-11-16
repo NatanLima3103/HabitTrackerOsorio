@@ -1,32 +1,251 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using API.Services;
-using API.UI;
+using API.Services; 
+using Microsoft.AspNetCore.Mvc;
+using API.Models; 
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-//desativa logs
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Warning);
+
+
 //Configuração do banco SQLite
 builder.Services.AddDbContext<HabitTrackerContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=habittracker.db")
 );
 
-//Serviços
+//Configuração do CORS 
+builder.Services.AddCors(options =>
+    options.AddPolicy("Acesso Total",
+        configs => configs
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod())
+);
+
 builder.Services.AddScoped<UsuarioService>();
-builder.Services.AddScoped<HabitoService>();
 builder.Services.AddScoped<StreakService>();
 
 var app = builder.Build();
 
 //Cria o banco e aplica migrations automaticamente
-using var scope = app.Services.CreateScope();
-var db = scope.ServiceProvider.GetRequiredService<HabitTrackerContext>();
-db.Database.Migrate();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HabitTrackerContext>();
+    db.Database.Migrate();
+}
 
-var usuarioService = scope.ServiceProvider.GetRequiredService<UsuarioService>();
-var habitoService = scope.ServiceProvider.GetRequiredService<HabitoService>();
-var streakService = scope.ServiceProvider.GetRequiredService<StreakService>();
+//SERVIÇOS DE HÁBITOS
 
-TerminalUI.Iniciar(usuarioService, habitoService, streakService);
+// GET: /api/habitos/usuario/{usuarioId}
+app.MapGet("/api/habitos/usuario/{usuarioId}",
+    ([FromServices] HabitTrackerContext db, int usuarioId) =>
+    {
+        //Lógica de busca
+        var listaHabitos = db.Habitos
+                             .Where(h => h.UsuarioId == usuarioId)
+                             .ToList();
+
+        if (listaHabitos.Count == 0)
+        {
+            return Results.NotFound("Nenhum hábito encontrado para este usuário.");
+        }
+
+        var hoje = DateTime.Today;
+
+        foreach (var h in listaHabitos)
+        {
+            //Marca se o hábito foi concluído hoje
+            h.ConcluidoHoje = db.RegistrosDiarios
+                                .Any(r => r.HabitoId == h.Id && r.Data.Date == hoje && r.Cumprido);
+        }
+
+        return Results.Ok(listaHabitos);
+    });
+
+
+// POST: /api/habitos/cadastrar
+app.MapPost("/api/habitos/cadastrar",
+    ([FromServices] HabitTrackerContext db, [FromBody] Habito habito) =>
+    {
+        if (string.IsNullOrWhiteSpace(habito.Nome) || string.IsNullOrWhiteSpace(habito.Descricao))
+        {
+            return Results.BadRequest("Nome e Descrição são campos obrigatórios.");
+        }
+        //Cria o objeto de hábito
+        var novoHabito = new Habito
+        {
+            Nome = habito.Nome,
+            Descricao = habito.Descricao,
+            UsuarioId = habito.UsuarioId
+        };
+
+        //Salvar no banco
+        db.Habitos.Add(novoHabito);
+        db.SaveChanges();
+        return Results.Created($"{novoHabito.Id}", novoHabito);
+    });
+
+//DELETE:  /api/habitos/deletar/{id}
+app.MapDelete("/api/habitos/deletar/{id}",
+    ([FromRoute] int id, [FromServices] HabitTrackerContext ctx) =>
+    {
+        Habito? resultado = ctx.Habitos.Find(id);
+        if (resultado == null)
+            return Results.NotFound("Hábito não encontrado.");
+        ctx.Habitos.Remove(resultado);
+        ctx.SaveChanges();
+        return Results.Ok(resultado);
+    });
+
+//PATCH:  /api/habitos/alterar/{id}
+app.MapPatch("/api/habitos/alterar/{id}",
+    ([FromRoute] int id, [FromBody] Habito habitoAtualizado, [FromServices] HabitTrackerContext ctx) =>
+    {
+        Habito? habitoExistente = ctx.Habitos.Find(id);
+        if (habitoExistente == null)
+            return Results.NotFound("Hábito não encontrado.");
+
+        // Atualiza os campos do hábito existente
+        habitoExistente.Nome = habitoAtualizado.Nome;
+        habitoExistente.Descricao = habitoAtualizado.Descricao;
+
+        ctx.SaveChanges();
+        return Results.Ok(habitoExistente);
+    });
+
+//SERVIÇO DE STREAKS
+// POST: /api/registros
+app.MapPost("/api/registros",
+    ([FromServices] HabitTrackerContext db, [FromBody] RegistroDiario novoRegistro, [FromServices] StreakService streakService) =>
+    {
+        // Lógica de MarcarHabito Como Concluido
+        var habitoId = novoRegistro.HabitoId;
+
+        var habito = db.Habitos.FirstOrDefault(h => h.Id == habitoId);
+        if (habito == null)
+        {
+            return Results.NotFound("Hábito não encontrado!");
+        }
+
+        var usuarioId = habito.UsuarioId;
+        var hoje = DateTime.Today;
+
+        var registroHoje = db.RegistrosDiarios
+            .AsEnumerable()
+            .FirstOrDefault(r =>
+                r.HabitoId == habitoId &&
+                r.Data.Date == hoje);
+
+        if (registroHoje != null && registroHoje.Cumprido)
+        {
+            return Results.Conflict($"O hábito '{habito.Nome}' já foi concluído hoje!");
+        }
+
+        if (registroHoje == null)
+        {
+            registroHoje = new RegistroDiario
+            {
+                HabitoId = habitoId,
+                Data = DateTime.Now,
+                Cumprido = true
+            };
+            db.RegistrosDiarios.Add(registroHoje);
+        }
+        else
+        {
+            registroHoje.Cumprido = true;
+            db.RegistrosDiarios.Update(registroHoje);
+        }
+
+        db.SaveChanges();
+
+        var (mensagemStreak, streakAtual) = streakService.VerificarConclusaoDiaria(usuarioId);
+
+        return Results.Ok(new
+        {
+            mensagem = $"Hábito '{habito.Nome}' marcado como concluído!",
+            infoStreak = mensagemStreak,
+            streak = streakAtual
+        });
+    });
+
+
+// GET: /api/usuarios/{usuarioId}/streaks
+app.MapGet("/api/usuarios/{usuarioId}/streaks",
+    ([FromServices] HabitTrackerContext db, [FromRoute] int usuarioId) =>
+    {
+        var usuario = db.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
+        if (usuario == null)
+        {
+            return Results.NotFound("Usuário não encontrado!");
+        }
+
+        var hoje = DateTime.Today;
+               var habitosComStatus = db.Habitos
+            .Where(h => h.UsuarioId == usuarioId)
+            .Select(h => new
+            {
+                h.Id,
+                h.Nome,
+                h.Descricao,
+                h.UsuarioId,
+                h.CriadoEm,
+                ConcluidoHoje = db.RegistrosDiarios
+                                  .Any(r => r.HabitoId == h.Id && r.Data.Date == hoje && r.Cumprido)
+            })
+            .ToList();
+
+        if (habitosComStatus.Count == 0)
+        {
+            return Results.Ok(new { streakTotal = usuario.Streak, habitosComStatus = new List<object>() });
+        }
+        return Results.Ok(new
+        {
+            streakTotal = usuario.Streak
+        });
+    });
+
+//USUARIO SERVICE
+
+//POST: /api/usuario/cadastrar
+app.MapPost("/api/usuario/cadastrar",
+    ([FromBody] Usuario usuario,
+    [FromServices] HabitTrackerContext db) =>
+{
+
+    Usuario? resultado =
+        db.Usuarios.FirstOrDefault(x => x.Email == usuario.Email);
+    if (resultado is not null)
+    {
+        return Results.Conflict("Esse usuário já existe!");
+    }
+
+    usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
+    db.Usuarios.Add(usuario);
+    db.SaveChanges();
+    return Results.Created("", usuario);
+});
+
+//POST: /api/usuario/login
+app.MapPost("/api/usuario/login",
+    ([FromBody] LoginInputModel login, [FromServices] UsuarioService usuarioService) =>
+    {
+        var usuario = usuarioService.Autenticar(login);
+
+        if (usuario == null)
+        {
+            return Results.Conflict("Email ou senha inválidos.");
+        }
+        return Results.Ok(new
+        {
+            Id = usuario.Id,
+            Nome = usuario.Nome,
+            Email = usuario.Email,
+            Streak = usuario.Streak
+        });
+    });
+
+
+app.UseCors("Acesso Total");
+app.Run();

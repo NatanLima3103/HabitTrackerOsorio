@@ -1,3 +1,4 @@
+namespace API.Models;
 public class RegistroDiario
 {
     public RegistroDiario()
