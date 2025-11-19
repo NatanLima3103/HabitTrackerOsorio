@@ -4,6 +4,7 @@ import LoginUsuario from "../src/components/pages/usuario/LoginUsuario";
 import ListarHabitos from "./components/pages/habito/ListarHabitos";
 import { BrowserRouter, Link, Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import Usuario from "../src/models/Usuario";
+import AlterarHabito from "./components/pages/habito/AlterarHabito";
 
 function App() {
   //state para saber quem está logado
@@ -23,7 +24,6 @@ function App() {
     localStorage.setItem("usuario", JSON.stringify(usuario));
   };
 
-  // Função que o botão de Logout vai chamar
   const handleLogout = () => {
     setUsuarioLogado(null);
     localStorage.removeItem("usuario");
@@ -49,6 +49,15 @@ return (
             element={
               // Se o usuário estiver logado mostra a lista de hábitos
               usuarioLogado ? <ListarHabitos /> : 
+              // Se não manda para a página de login
+              <Navigate to="/usuario/login" />
+            }
+          />
+          <Route 
+            path="/habito/alterar/:habitoId"
+            element={
+              // Se o usuário estiver logado mostra a alteração de hábitos
+              usuarioLogado ? <AlterarHabito /> : 
               // Se não manda para a página de login
               <Navigate to="/usuario/login" />
             }
@@ -79,10 +88,11 @@ function NavWrapper({ usuario, onLogout }: NavProps) {
           // Se logado, mostra o nome e o botão de deslogar
           <>
               <Link to="/">Meus Hábitos</Link>
+              <Link to="/habitos/cadastrar">Cadastrar Hábitos</Link>
               <button onClick={executarLogout}>Deslogar</button>
           </>
         ) : (
-          // Se NÃO ESTIVER logado, mostra os links de Login e Cadastro
+          // Se não logado, mostra os links de login e cadastro
           <>
             <li>
               <Link to="/usuario/cadastrar">Cadastro de usuário</Link>

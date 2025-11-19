@@ -1,5 +1,5 @@
 ###Listar habitos do usuário
-GET http://localhost:5000/api/habitos/usuario/2
+GET http://localhost:5000/api/habitos/usuario/1
 
 ###Cadastrar usuário
 POST http://localhost:5000/api/usuario/cadastrar
@@ -16,7 +16,7 @@ POST http://localhost:5000/api/habitos/cadastrar
 Content-Type: application/json
 
 {
-    "Nome": "Ler",
+    "Nome": "fasd",
     "Descricao": "Ler 10 pgs",
     "UsuarioId": 2
 }
@@ -38,7 +38,7 @@ POST http://localhost:5000/api/registros
 Content-Type: application/json
 
 {
-    "HabitoId": 2
+    "HabitoId": 19
 }
 
 ###Ver streak do usuario
@@ -52,3 +52,6 @@ Content-Type: application/json
     "Email": "lucas@gmail.com",
     "Senha": "123"
 }
+
+###buscar habito
+GET http://localhost:5000/api/habitos/buscar/3

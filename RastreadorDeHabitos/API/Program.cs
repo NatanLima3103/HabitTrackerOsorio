@@ -46,11 +46,6 @@ app.MapGet("/api/habitos/usuario/{usuarioId}",
                              .Where(h => h.UsuarioId == usuarioId)
                              .ToList();
 
-        if (listaHabitos.Count == 0)
-        {
-            return Results.NotFound("Nenhum hábito encontrado para este usuário.");
-        }
-
         var hoje = DateTime.Today;
 
         foreach (var h in listaHabitos)
@@ -61,6 +56,21 @@ app.MapGet("/api/habitos/usuario/{usuarioId}",
         }
 
         return Results.Ok(listaHabitos);
+    });
+
+// GET: /api/habitos/buscar/{habitoId}
+app.MapGet("/api/habitos/buscar/{habitoId}",
+    ([FromServices] HabitTrackerContext db, int habitoId) =>
+    {
+        //Lógica de busca
+        var habito = db.Habitos.FirstOrDefault(h => h.Id == habitoId);
+
+        if (habito == null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(habito);
     });
 
 
@@ -117,58 +127,67 @@ app.MapPatch("/api/habitos/alterar/{id}",
 //SERVIÇO DE STREAKS
 // POST: /api/registros
 app.MapPost("/api/registros",
-    ([FromServices] HabitTrackerContext db, [FromBody] RegistroDiario novoRegistro, [FromServices] StreakService streakService) =>
+    ([FromServices] HabitTrackerContext db, 
+     [FromBody] RegistroDiario novoRegistro, 
+     [FromServices] StreakService streakService) =>
+{
+    var habitoId = novoRegistro.HabitoId;
+
+    var habito = db.Habitos.FirstOrDefault(h => h.Id == habitoId);
+    if (habito == null)
     {
-        // Lógica de MarcarHabito Como Concluido
-        var habitoId = novoRegistro.HabitoId;
+        return Results.NotFound("Hábito não encontrado!");
+    }
 
-        var habito = db.Habitos.FirstOrDefault(h => h.Id == habitoId);
-        if (habito == null)
-        {
-            return Results.NotFound("Hábito não encontrado!");
-        }
+    var usuarioId = habito.UsuarioId;
+    var hoje = DateTime.Today;
 
-        var usuarioId = habito.UsuarioId;
-        var hoje = DateTime.Today;
+    var registroHoje = db.RegistrosDiarios
+        .FirstOrDefault(r =>
+            r.HabitoId == habitoId &&
+            r.Data.Date == hoje);
 
-        var registroHoje = db.RegistrosDiarios
-            .AsEnumerable()
-            .FirstOrDefault(r =>
-                r.HabitoId == habitoId &&
-                r.Data.Date == hoje);
-
-        if (registroHoje != null && registroHoje.Cumprido)
-        {
-            return Results.Conflict($"O hábito '{habito.Nome}' já foi concluído hoje!");
-        }
-
-        if (registroHoje == null)
-        {
-            registroHoje = new RegistroDiario
-            {
-                HabitoId = habitoId,
-                Data = DateTime.Now,
-                Cumprido = true
-            };
-            db.RegistrosDiarios.Add(registroHoje);
-        }
-        else
-        {
-            registroHoje.Cumprido = true;
-            db.RegistrosDiarios.Update(registroHoje);
-        }
-
-        db.SaveChanges();
-
+    // 🔥 Se já estava concluído, não dá erro — retorna streak normalmente
+    if (registroHoje != null && registroHoje.Cumprido)
+    {
         var (mensagemStreak, streakAtual) = streakService.VerificarConclusaoDiaria(usuarioId);
 
         return Results.Ok(new
         {
-            mensagem = $"Hábito '{habito.Nome}' marcado como concluído!",
+            mensagem = $"Hábito '{habito.Nome}' já estava concluído hoje.",
             infoStreak = mensagemStreak,
             streak = streakAtual
         });
+    }
+
+    // Caso contrário, marca como concluído
+    if (registroHoje == null)
+    {
+        registroHoje = new RegistroDiario
+        {
+            HabitoId = habitoId,
+            Data = DateTime.Now,
+            Cumprido = true
+        };
+        db.RegistrosDiarios.Add(registroHoje);
+    }
+    else
+    {
+        registroHoje.Cumprido = true;
+        db.RegistrosDiarios.Update(registroHoje);
+    }
+
+    db.SaveChanges();
+
+    var (mensagemFinal, streakFinal) = streakService.VerificarConclusaoDiaria(usuarioId);
+
+    return Results.Ok(new
+    {
+        mensagem = $"Hábito '{habito.Nome}' marcado como concluído!",
+        infoStreak = mensagemFinal,
+        streak = streakFinal
     });
+});
 
 
 // GET: /api/usuarios/{usuarioId}/streaks
