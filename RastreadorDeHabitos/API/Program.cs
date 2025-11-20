@@ -147,7 +147,7 @@ app.MapPost("/api/registros",
             r.HabitoId == habitoId &&
             r.Data.Date == hoje);
 
-    // 🔥 Se já estava concluído, não dá erro — retorna streak normalmente
+    // Se já estava concluído, não dá erro — retorna streak normalmente
     if (registroHoje != null && registroHoje.Cumprido)
     {
         var (mensagemStreak, streakAtual) = streakService.VerificarConclusaoDiaria(usuarioId);

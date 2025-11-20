@@ -18,7 +18,7 @@ Content-Type: application/json
 {
     "Nome": "fasd",
     "Descricao": "Ler 10 pgs",
-    "UsuarioId": 2
+    "UsuarioId": 5
 }
 
 ###Deletar habitos

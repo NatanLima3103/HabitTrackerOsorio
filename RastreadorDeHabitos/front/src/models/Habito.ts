@@ -2,6 +2,7 @@ export default interface Habito {
   id?: number;
   nome: string;
   descricao: string;
-  usuario: number;
+  usuarioId: number;
   CriadoEm?: string;
+  concluidoHoje?: boolean;
 }

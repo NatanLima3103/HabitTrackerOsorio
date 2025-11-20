@@ -64,6 +64,20 @@ function ListarHabitos() {
     }
   }
 
+  async function marcarComoConcluido(habitoId: number) {
+  if (!idDoUsuario) return;
+
+  try {
+    const resposta = await axios.post("http://localhost:5000/api/registros", {
+      habitoId: habitoId
+    });
+    listarHabitosAPI(idDoUsuario);
+    exibirStreaks(idDoUsuario);
+  } catch (error) {
+    console.log("Erro ao marcar hábito: " + error);
+  }
+}
+
   return (
     <div id="componente_listar_habitos">
       <h1>Habitos</h1>
@@ -106,7 +120,19 @@ function ListarHabitos() {
                         Alterar
                     </Link>
                     </td>
-                    <td><input type="checkbox" name="" id="" /></td>
+                    {
+                      habito.concluidoHoje ?(
+                        <p>Hábito já concluido!</p>
+                       ) : (
+                        <td>
+                          <input
+                              type="checkbox"
+                              disabled={habito.concluidoHoje}
+                              onChange={() => marcarComoConcluido(habito.id!)}
+                            />
+                        </td>
+                       )
+                    }
                 </tr>
                 ))
             )}

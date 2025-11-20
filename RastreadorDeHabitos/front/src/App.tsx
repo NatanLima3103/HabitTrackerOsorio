@@ -5,6 +5,7 @@ import ListarHabitos from "./components/pages/habito/ListarHabitos";
 import { BrowserRouter, Link, Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import Usuario from "../src/models/Usuario";
 import AlterarHabito from "./components/pages/habito/AlterarHabito";
+import CadastrarHabito from "./components/pages/habito/CadastrarHabito";
 
 function App() {
   //state para saber quem está logado
@@ -58,6 +59,15 @@ return (
             element={
               // Se o usuário estiver logado mostra a alteração de hábitos
               usuarioLogado ? <AlterarHabito /> : 
+              // Se não manda para a página de login
+              <Navigate to="/usuario/login" />
+            }
+          />
+          <Route 
+            path="/habitos/cadastrar"
+            element={
+              // Se o usuário estiver logado mostra a alteração de hábitos
+              usuarioLogado ? <CadastrarHabito /> : 
               // Se não manda para a página de login
               <Navigate to="/usuario/login" />
             }
