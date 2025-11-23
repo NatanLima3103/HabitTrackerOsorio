@@ -3,6 +3,7 @@ import Usuario from "../../../models/Usuario";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Habito from "../../../models/Habito";
+import "../../../styles/cadastro-habito.css";
 
 function CadastrarHabito() {
     const [nome, setNome] = useState("");
@@ -45,27 +46,41 @@ function CadastrarHabito() {
         }
     }
 
-    return (
-        <div>
-        <h1>Cadastrar Hábito</h1>
-        <form onSubmit={submeterForm}>
-            <div>
-            <label>Nome:</label>
-            <input type="text" onChange={(e: any) => setNome(e.target.value)} />
+       return (
+        <div className="cadastro-habito-page">
+            <div className="cadastro-habito-container">
+                <h1 className="cadastro-habito-title">Cadastrar Hábito</h1>
+
+                <form onSubmit={submeterForm} className="cadastro-habito-form">
+                    <div className="form-group">
+                        <label htmlFor="nome">Nome do hábito</label>
+                        <input
+                            id="nome"
+                            type="text"
+                            className="form-input"
+                            onChange={(e: any) => setNome(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="descricao">Descrição</label>
+                        <textarea
+                            id="descricao"
+                            className="form-textarea"
+                            onChange={(e: any) => setDescricao(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-actions">
+                        <button type="submit" className="btn-primary">
+                            Cadastrar
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div>
-            <label>Descrição:</label>
-            <input
-                type="text"
-                onChange={(e: any) => setDescricao(e.target.value)}
-            />
-            </div>
-            <div>
-            <button type="submit">Cadastrar</button>
-            </div>
-        </form>
         </div>
     );
+
 }
 
 export default CadastrarHabito;

@@ -2,6 +2,7 @@ import { useState } from "react";
 import Usuario from "../../../models/Usuario";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "../../../styles/login-usuario.css";
 
 interface LoginProps {
   onLogin: (usuario: Usuario) => void;
@@ -35,24 +36,44 @@ function LoginUsuario({ onLogin }: LoginProps) {
     }
   }
 
-  return (
-    <div>
-      <h1>Login Usuário</h1>
-      <form onSubmit={submeterForm}>
-        <div>
-          <label>Email:</label>
-          <input type="email" onChange={(e: any) => setEmail(e.target.value)} required />
-        </div>
-        <div>
-          <label>Senha:</label>
-          <input type="password" onChange={(e: any) => setSenha(e.target.value)} required/>
-        </div>
-        <div>
-          <button type="submit">Login</button>
-        </div>
-      </form>
+   return (
+    <div className="login-usuario-page">
+      <div className="login-usuario-container">
+        <h1 className="login-usuario-title">Login</h1>
+
+        <form onSubmit={submeterForm} className="login-usuario-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              className="form-input"
+              onChange={(e: any) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="senha">Senha</label>
+            <input
+              id="senha"
+              type="password"
+              className="form-input"
+              onChange={(e: any) => setSenha(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn-primary">
+              Login
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
+
 }
 
 export default LoginUsuario;
