@@ -19,7 +19,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Acesso Total",
         configs => configs
             .AllowAnyOrigin()
-            .AllowAnyHeader()
+  
+           .AllowAnyHeader()
             .AllowAnyMethod())
 );
 
@@ -44,7 +45,8 @@ app.MapGet("/api/habitos/usuario/{usuarioId}",
         //Lógica de busca
         var listaHabitos = db.Habitos
                              .Where(h => h.UsuarioId == usuarioId)
-                             .ToList();
+    
+                          .ToList();
 
         var hoje = DateTime.Today;
 
@@ -52,7 +54,8 @@ app.MapGet("/api/habitos/usuario/{usuarioId}",
         {
             //Marca se o hábito foi concluído hoje
             h.ConcluidoHoje = db.RegistrosDiarios
-                                .Any(r => r.HabitoId == h.Id && r.Data.Date == hoje && r.Cumprido);
+                                .Any(r => r.HabitoId 
+ == h.Id && r.Data.Date == hoje && r.Cumprido);
         }
 
         return Results.Ok(listaHabitos);
@@ -72,8 +75,6 @@ app.MapGet("/api/habitos/buscar/{habitoId}",
 
         return Results.Ok(habito);
     });
-
-
 // POST: /api/habitos/cadastrar
 app.MapPost("/api/habitos/cadastrar",
     ([FromServices] HabitTrackerContext db, [FromBody] Habito habito) =>
@@ -87,7 +88,8 @@ app.MapPost("/api/habitos/cadastrar",
         {
             Nome = habito.Nome,
             Descricao = habito.Descricao,
-            UsuarioId = habito.UsuarioId
+  
+           UsuarioId = habito.UsuarioId
         };
 
         //Salvar no banco
@@ -104,6 +106,7 @@ app.MapDelete("/api/habitos/deletar/{id}",
         if (resultado == null)
             return Results.NotFound("Hábito não encontrado.");
         ctx.Habitos.Remove(resultado);
+ 
         ctx.SaveChanges();
         return Results.Ok(resultado);
     });
@@ -121,7 +124,8 @@ app.MapPatch("/api/habitos/alterar/{id}",
         habitoExistente.Descricao = habitoAtualizado.Descricao;
 
         ctx.SaveChanges();
-        return Results.Ok(habitoExistente);
+    
+     return Results.Ok(habitoExistente);
     });
 
 //SERVIÇO DE STREAKS
@@ -144,7 +148,8 @@ app.MapPost("/api/registros",
 
     var registroHoje = db.RegistrosDiarios
         .FirstOrDefault(r =>
-            r.HabitoId == habitoId &&
+            
+ r.HabitoId == habitoId &&
             r.Data.Date == hoje);
 
     // Se já estava concluído, não dá erro — retorna streak normalmente
@@ -157,7 +162,8 @@ app.MapPost("/api/registros",
             mensagem = $"Hábito '{habito.Nome}' já estava concluído hoje.",
             infoStreak = mensagemStreak,
             streak = streakAtual
-        });
+  
+       });
     }
 
     // Caso contrário, marca como concluído
@@ -178,8 +184,7 @@ app.MapPost("/api/registros",
     }
 
     db.SaveChanges();
-
-    var (mensagemFinal, streakFinal) = streakService.VerificarConclusaoDiaria(usuarioId);
+ var (mensagemFinal, streakFinal) = streakService.VerificarConclusaoDiaria(usuarioId);
 
     return Results.Ok(new
     {
@@ -198,7 +203,8 @@ app.MapGet("/api/usuarios/{usuarioId}/streaks",
         if (usuario == null)
         {
             return Results.NotFound("Usuário não encontrado!");
-        }
+        
+ }
 
         var hoje = DateTime.Today;
                var habitosComStatus = db.Habitos
@@ -208,20 +214,19 @@ app.MapGet("/api/usuarios/{usuarioId}/streaks",
                 h.Id,
                 h.Nome,
                 h.Descricao,
-                h.UsuarioId,
+    
+             h.UsuarioId,
                 h.CriadoEm,
                 ConcluidoHoje = db.RegistrosDiarios
                                   .Any(r => r.HabitoId == h.Id && r.Data.Date == hoje && r.Cumprido)
             })
             .ToList();
 
-        if (habitosComStatus.Count == 0)
-        {
-            return Results.Ok(new { streakTotal = usuario.Streak, habitosComStatus = new List<object>() });
-        }
+        // ALTERAÇÃO APLICADA AQUI: Retorna o Streak e a lista de Hábitos em uma estrutura única.
         return Results.Ok(new
         {
-            streakTotal = usuario.Streak
+            streakTotal = usuario.Streak,
+            habitosComStatus = habitosComStatus
         });
     });
 
@@ -237,7 +242,8 @@ app.MapPost("/api/usuario/cadastrar",
         db.Usuarios.FirstOrDefault(x => x.Email == usuario.Email);
     if (resultado is not null)
     {
-        return Results.Conflict("Esse usuário já existe!");
+    
+     return Results.Conflict("Esse usuário já existe!");
     }
 
     usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
@@ -258,7 +264,8 @@ app.MapPost("/api/usuario/login",
         }
         return Results.Ok(new
         {
-            Id = usuario.Id,
+    
+         Id = usuario.Id,
             Nome = usuario.Nome,
             Email = usuario.Email,
             Streak = usuario.Streak

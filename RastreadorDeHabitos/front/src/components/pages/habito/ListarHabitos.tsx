@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import 
+ { useState, useEffect } from "react";
 import Habito from "../../../models/Habito";
 import Usuario from "../../../models/Usuario";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import "../../../styles/listar-habitos.css"; // CORREÇÃO: Volta 3 níveis para a pasta src/styles/
 
 function ListarHabitos() {
   const [habitos, setHabitos] = useState<Habito[]>([]);
@@ -20,6 +22,7 @@ function ListarHabitos() {
     } else {
       const usuario: Usuario = JSON.parse(usuarioStorage);
       const idDoUsuario = usuario.id;
+ 
       if (idDoUsuario) {
         setIdDoUsuario(idDoUsuario);
         listarHabitosAPI(idDoUsuario);
@@ -42,6 +45,7 @@ function ListarHabitos() {
     }
   }
 
+ 
   async function deletarHabitoAPI(id: number, idUsuario: number) {
     try {
       const resposta = await axios.delete(
@@ -60,7 +64,8 @@ function ListarHabitos() {
         )
         setStreaks(resposta.data.streakTotal);
     } catch (error) {
-        console.log("Erro na requisição: " + error);
+        console.log("Erro na requisição: " 
+ + error);
     }
   }
 
@@ -79,69 +84,83 @@ function ListarHabitos() {
 }
 
   return (
-    <div id="componente_listar_habitos">
-      <h1>Habitos</h1>
-      <table>
+    <div className="listar-habitos-page">
+      <h1>Meus Hábitos</h1>
+      
+      <div id="streaks">
+            <h1>Streaks</h1>
+            <p>🔥{streaks !== null ? streaks : "⏳Carregando..."}</p>
+      </div>
+
+      <table className="habitos-table">
         <thead>
             {habitos.length === 0 ? (
-                    <th colSpan={4} style={{ textAlign: "center", padding: "20px" }}>
-                        Hábitos.
-                    </th>
+                    <tr>
+                      <th colSpan={6} style={{ textAlign: "center", padding: 
+ "20px" }}>
+                          Seus Hábitos.
+                      </th>
+                    </tr>
             ) : (
                 <tr>
                     <th>#</th>
                     <th>Nome</th>
-                    <th>Descrição</th>
-                    <th>Deletar</th>
-                    <th>Alterar</th>
-                    <th>Marcar como concluido</th>
+        
+             <th>Descrição</th>
+                    <th>Ações</th>
+                    <th>Status de Hoje</th>
                 </tr>
             )}
 
         </thead>
         <tbody>
-            {habitos.length === 0 ? (
+     
+        {habitos.length === 0 ? (
                 <tr>
-                <td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>
+                <td colSpan={6} style={{ textAlign: "center", padding: "20px" }}>
                     Nenhum hábito cadastrado ainda.
                 </td>
                 </tr>
             ) : (
-                habitos.map((habito) => (
+    
+             habitos.map((habito) => (
                 <tr key={habito.id}>
                     <td>{habito.id}</td>
                     <td>{habito.nome}</td>
                     <td>{habito.descricao}</td>
                     <td>
-                    <button onClick={() => deletarHabitoAPI(habito.id!, idDoUsuario!)}>
+            
+         <button 
+                        className="deletar"
+                        onClick={() => deletarHabitoAPI(habito.id!, idDoUsuario!)}>
                         Deletar
                     </button>
-                    <Link to={`habito/alterar/${habito.id}`}>
+                    <Link to={`habito/alterar/${habito.id}`} className="link-alterar">
                         Alterar
                     </Link>
+  
+                   </td>
+                    <td>
+                      {
+                        habito.concluidoHoje ?(
+                          <span className="concluido-hoje">Concluído!</span>
+                         ) : (
+             
+                <input
+                            type="checkbox"
+                            disabled={false}
+                          
+       onChange={() => marcarComoConcluido(habito.id!)}
+                              />
+                         )
+                      }
                     </td>
-                    {
-                      habito.concluidoHoje ?(
-                        <p>Hábito já concluido!</p>
-                       ) : (
-                        <td>
-                          <input
-                              type="checkbox"
-                              disabled={habito.concluidoHoje}
-                              onChange={() => marcarComoConcluido(habito.id!)}
-                            />
-                        </td>
-                       )
-                    }
                 </tr>
-                ))
+    
+             ))
             )}
         </tbody>
       </table>
-      <div id="streaks">
-            <h1>Streaks</h1>
-            <p>🔥{streaks !== null ? streaks : "⏳Carregando..."}</p>
-      </div>
     </div>
   );
 }

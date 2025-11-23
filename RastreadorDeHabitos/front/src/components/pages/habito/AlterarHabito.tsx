@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axios from 
+ "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import Habito from "../../../models/Habito";
 import Usuario from "../../../models/Usuario";
+import "../../../styles/cadastro-habito.css"; // CORREÇÃO: Volta 3 níveis para a pasta src/styles/
 
 function AlterarHabito() {
   const { habitoId } = useParams();
@@ -17,7 +19,8 @@ function AlterarHabito() {
           navigate("/usuario/login");
         } else {
           const usuario: Usuario = JSON.parse(usuarioStorage);
-          const idDoUsuario = usuario.id;
+        
+   const idDoUsuario = usuario.id;
           if (idDoUsuario) {
             setIdDoUsuario(idDoUsuario);
             if (!habitoId || isNaN(Number(habitoId))) {
@@ -25,7 +28,8 @@ function AlterarHabito() {
                 navigate("/"); // volta para home ou página de erro
                 return;
             }
-            buscarHabitoAPI(Number(habitoId));
+      
+       buscarHabitoAPI(Number(habitoId));
           } else {
             console.error("Usuário não logado ou ID não encontrado!");
           }
@@ -46,7 +50,8 @@ function AlterarHabito() {
     }
   }
 
-  function submeterForm(e: any) {
+  function submeterForm(e: any) 
+ {
     e.preventDefault();
     enviarHabitoAPI();
   }
@@ -68,29 +73,36 @@ function AlterarHabito() {
   }
 
   return (
-    <div>
-      <h1>Alterar Produto</h1>
-      <form onSubmit={submeterForm}>
-        <div>
-          <label>Nome:</label>
-          <input
-            value={nome}
-            type="text"
-            onChange={(e: any) => setNome(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Descrição:</label>
-          <input
-            value={descricao}
-            type="text"
-            onChange={(e: any) => setDescricao(e.target.value)}
-          />
-        </div>
-        <div>
-          <button type="submit">Salvar</button>
-        </div>
-      </form>
+    <div className="cadastro-habito-page">
+      <div className="cadastro-habito-container">
+        <h1 className="cadastro-habito-title">Alterar Hábito</h1>
+      
+        <form onSubmit={submeterForm} className="cadastro-habito-form">
+            <div className="form-group">
+                <label htmlFor="nome">Nome:</label>
+                <input
+                    id="nome"
+                    value={nome}
+                    type="text"
+                    className="form-input"
+                    onChange={(e: any) => setNome(e.target.value)}
+                />
+            </div>
+            <div className="form-group">
+                <label htmlFor="descricao">Descrição:</label>
+                <input
+                    id="descricao"
+                    value={descricao}
+                    type="text"
+                    className="form-input"
+                    onChange={(e: any) => setDescricao(e.target.value)}
+                />
+            </div>
+            <div className="form-actions">
+                <button type="submit" className="btn-primary">Salvar</button>
+            </div>
+        </form>
+      </div>
     </div>
   );
 }

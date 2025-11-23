@@ -2,10 +2,12 @@ import React, {useEffect, useState} from "react";
 import CadastrarUsuario from "../src/components/pages/usuario/CadastrarUsuario";
 import LoginUsuario from "../src/components/pages/usuario/LoginUsuario";
 import ListarHabitos from "./components/pages/habito/ListarHabitos";
-import { BrowserRouter, Link, Route, Routes, useNavigate, Navigate } from "react-router-dom";
+import { BrowserRouter, Link, Route, Routes, useNavigate, Navigate } 
+ from "react-router-dom";
 import Usuario from "../src/models/Usuario";
 import AlterarHabito from "./components/pages/habito/AlterarHabito";
 import CadastrarHabito from "./components/pages/habito/CadastrarHabito";
+import "./styles/navbar.css";
 
 function App() {
   //state para saber quem está logado
@@ -32,7 +34,8 @@ function App() {
 
 return (
     <BrowserRouter>
-      <div className="App">
+     
+  <div className="App">
         {/*Passa o estado de login e a função de logout para o menu */}
         <NavWrapper usuario={usuarioLogado} onLogout={handleLogout} />
 
@@ -43,7 +46,8 @@ return (
           />
           <Route
             path="/usuario/login"
-            element={<LoginUsuario onLogin={handleLogin} />}
+            element={<LoginUsuario onLogin={handleLogin} 
+ />}
           />
           <Route 
             path="/"
@@ -51,7 +55,8 @@ return (
               // Se o usuário estiver logado mostra a lista de hábitos
               usuarioLogado ? <ListarHabitos /> : 
               // Se não manda para a página de login
-              <Navigate to="/usuario/login" />
+             
+  <Navigate to="/usuario/login" />
             }
           />
           <Route 
@@ -68,7 +73,8 @@ return (
             element={
               // Se o usuário estiver logado mostra a alteração de hábitos
               usuarioLogado ? <CadastrarHabito /> : 
-              // Se não manda para a página de login
+     
+          // Se não manda para a página de login
               <Navigate to="/usuario/login" />
             }
           />
@@ -89,10 +95,11 @@ function NavWrapper({ usuario, onLogout }: NavProps) {
   function executarLogout() {
     onLogout(); // Limpa o state e o localStorage
     navigate("/usuario/login"); // Redireciona para o login
+ 
   }
 
   return (
-    <nav>
+    <nav className="main-nav">
       <ul>
         {usuario ? (
           // Se logado, mostra o nome e o botão de deslogar
@@ -102,7 +109,8 @@ function NavWrapper({ usuario, onLogout }: NavProps) {
               <button onClick={executarLogout}>Deslogar</button>
           </>
         ) : (
-          // Se não logado, mostra os links de login e cadastro
+  
+         // Se não logado, mostra os links de login e cadastro
           <>
             <li>
               <Link to="/usuario/cadastrar">Cadastro de usuário</Link>
@@ -111,7 +119,8 @@ function NavWrapper({ usuario, onLogout }: NavProps) {
               <Link to="/usuario/login">Login de usuário</Link>
             </li>
           </>
-        )}
+   
+      )}
       </ul>
     </nav>
   );
