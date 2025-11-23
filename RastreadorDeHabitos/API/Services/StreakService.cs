@@ -96,5 +96,46 @@ namespace API.Services
 
             return (mensagem, usuario.Streak);
         }
+
+        public void VerificarSePerdeuStreak(int usuarioId)
+        {
+            var hoje = DateTime.Today;
+            var ontem = hoje.AddDays(-1);
+
+            var usuario = _context.Usuarios.FirstOrDefault(u => u.Id == usuarioId);
+            if (usuario == null) return;
+
+            if (usuario.UltimaAtualizacaoStreak.Date == hoje)
+                return;
+
+            var habitosUsuario = _context.Habitos
+                .Where(h => h.UsuarioId == usuarioId && h.CriadoEm.Date <= ontem)
+                .ToList();
+
+            if (habitosUsuario.Count == 0)
+            {
+                usuario.UltimaAtualizacaoStreak = hoje;
+                _context.Usuarios.Update(usuario);
+                _context.SaveChanges();
+                return;
+            }
+
+            var concluidosOntem = _context.RegistrosDiarios
+                .Where(r => r.Habito.UsuarioId == usuarioId &&
+                            r.Data.Date == ontem &&
+                            r.Cumprido)
+                .Select(r => r.HabitoId)
+                .Distinct()
+                .ToList();
+
+            if (concluidosOntem.Count != habitosUsuario.Count)
+            {
+                usuario.Streak = 0;
+            }
+
+            usuario.UltimaAtualizacaoStreak = hoje;
+            _context.Usuarios.Update(usuario);
+            _context.SaveChanges();
+        }
     }
 }

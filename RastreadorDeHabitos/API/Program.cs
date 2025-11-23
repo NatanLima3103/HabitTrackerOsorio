@@ -24,6 +24,11 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod())
 );
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<StreakService>();
 
@@ -40,8 +45,10 @@ using (var scope = app.Services.CreateScope())
 
 // GET: /api/habitos/usuario/{usuarioId}
 app.MapGet("/api/habitos/usuario/{usuarioId}",
-    ([FromServices] HabitTrackerContext db, int usuarioId) =>
-    {
+    ([FromServices] HabitTrackerContext db, [FromServices] StreakService streakService ,int usuarioId) =>
+    {   
+        streakService.VerificarSePerdeuStreak(usuarioId);
+
         //Lógica de busca
         var listaHabitos = db.Habitos
                              .Where(h => h.UsuarioId == usuarioId)

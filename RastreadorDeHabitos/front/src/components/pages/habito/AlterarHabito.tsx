@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from 
- "axios";
+import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import Habito from "../../../models/Habito";
 import Usuario from "../../../models/Usuario";
-import "../../../styles/cadastro-habito.css"; // CORREÇÃO: Volta 3 níveis para a pasta src/styles/
 
 function AlterarHabito() {
   const { habitoId } = useParams();
@@ -15,26 +13,25 @@ function AlterarHabito() {
   useEffect(() => {
     const usuarioStorage = localStorage.getItem("usuario");
     if (!usuarioStorage) {
-          // Se não houver usuário logado manda para o login
-          navigate("/usuario/login");
-        } else {
-          const usuario: Usuario = JSON.parse(usuarioStorage);
-        
-   const idDoUsuario = usuario.id;
-          if (idDoUsuario) {
-            setIdDoUsuario(idDoUsuario);
-            if (!habitoId || isNaN(Number(habitoId))) {
-                console.error("ID de hábito inválido:", habitoId);
-                navigate("/"); // volta para home ou página de erro
-                return;
-            }
-      
-       buscarHabitoAPI(Number(habitoId));
-          } else {
-            console.error("Usuário não logado ou ID não encontrado!");
-          }
+      // Se não houver usuário logado manda para o login
+      navigate("/usuario/login");
+    } else {
+      const usuario: Usuario = JSON.parse(usuarioStorage);
+
+      const idDoUsuario = usuario.id;
+      if (idDoUsuario) {
+        setIdDoUsuario(idDoUsuario);
+        if (!habitoId || isNaN(Number(habitoId))) {
+          console.error("ID de hábito inválido:", habitoId);
+          navigate("/"); // volta para home ou página de erro
+          return;
         }
-    
+
+        buscarHabitoAPI(Number(habitoId));
+      } else {
+        console.error("Usuário não logado ou ID não encontrado!");
+      }
+    }
   }, []);
 
   async function buscarHabitoAPI(habitoId: number) {
@@ -50,8 +47,7 @@ function AlterarHabito() {
     }
   }
 
-  function submeterForm(e: any) 
- {
+  function submeterForm(e: any) {
     e.preventDefault();
     enviarHabitoAPI();
   }
@@ -59,8 +55,8 @@ function AlterarHabito() {
   async function enviarHabitoAPI() {
     try {
       const habito = {
-            nome,
-            descricao
+        nome,
+        descricao,
       };
       const resposta = await axios.patch(
         "http://localhost:5000/api/habitos/alterar/" + habitoId,
@@ -76,31 +72,33 @@ function AlterarHabito() {
     <div className="cadastro-habito-page">
       <div className="cadastro-habito-container">
         <h1 className="cadastro-habito-title">Alterar Hábito</h1>
-      
+
         <form onSubmit={submeterForm} className="cadastro-habito-form">
-            <div className="form-group">
-                <label htmlFor="nome">Nome:</label>
-                <input
-                    id="nome"
-                    value={nome}
-                    type="text"
-                    className="form-input"
-                    onChange={(e: any) => setNome(e.target.value)}
-                />
-            </div>
-            <div className="form-group">
-                <label htmlFor="descricao">Descrição:</label>
-                <input
-                    id="descricao"
-                    value={descricao}
-                    type="text"
-                    className="form-input"
-                    onChange={(e: any) => setDescricao(e.target.value)}
-                />
-            </div>
-            <div className="form-actions">
-                <button type="submit" className="btn-primary">Salvar</button>
-            </div>
+          <div className="form-group">
+            <label htmlFor="nome">Nome:</label>
+            <input
+              id="nome"
+              value={nome}
+              type="text"
+              className="form-input"
+              onChange={(e: any) => setNome(e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="descricao">Descrição:</label>
+            <input
+              id="descricao"
+              value={descricao}
+              type="text"
+              className="form-input"
+              onChange={(e: any) => setDescricao(e.target.value)}
+            />
+          </div>
+          <div className="form-actions">
+            <button type="submit" className="btn-primary">
+              Salvar
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -2,7 +2,6 @@ import { useState } from "react";
 import Usuario from "../../../models/Usuario";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../../../styles/login-usuario.css";
 
 interface LoginProps {
   onLogin: (usuario: Usuario) => void;
@@ -36,7 +35,7 @@ function LoginUsuario({ onLogin }: LoginProps) {
     }
   }
 
-   return (
+  return (
     <div className="login-usuario-page">
       <div className="login-usuario-container">
         <h1 className="login-usuario-title">Login</h1>
@@ -73,7 +72,6 @@ function LoginUsuario({ onLogin }: LoginProps) {
       </div>
     </div>
   );
-
 }
 
 export default LoginUsuario;

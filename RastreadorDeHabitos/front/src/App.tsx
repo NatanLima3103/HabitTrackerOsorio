@@ -1,13 +1,18 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import CadastrarUsuario from "../src/components/pages/usuario/CadastrarUsuario";
 import LoginUsuario from "../src/components/pages/usuario/LoginUsuario";
 import ListarHabitos from "./components/pages/habito/ListarHabitos";
-import { BrowserRouter, Link, Route, Routes, useNavigate, Navigate } 
- from "react-router-dom";
+import {
+  BrowserRouter,
+  Link,
+  Route,
+  Routes,
+  useNavigate,
+  Navigate,
+} from "react-router-dom";
 import Usuario from "../src/models/Usuario";
 import AlterarHabito from "./components/pages/habito/AlterarHabito";
 import CadastrarHabito from "./components/pages/habito/CadastrarHabito";
-import "./styles/navbar.css";
 
 function App() {
   //state para saber quem está logado
@@ -32,50 +37,53 @@ function App() {
     localStorage.removeItem("usuario");
   };
 
-return (
+  return (
     <BrowserRouter>
-     
-  <div className="App">
+      <div className="App">
         {/*Passa o estado de login e a função de logout para o menu */}
         <NavWrapper usuario={usuarioLogado} onLogout={handleLogout} />
 
         <Routes>
-          <Route
-            path="/usuario/cadastrar"
-            element={<CadastrarUsuario />}
-          />
+          <Route path="/usuario/cadastrar" element={<CadastrarUsuario />} />
           <Route
             path="/usuario/login"
-            element={<LoginUsuario onLogin={handleLogin} 
- />}
+            element={<LoginUsuario onLogin={handleLogin} />}
           />
-          <Route 
+          <Route
             path="/"
             element={
               // Se o usuário estiver logado mostra a lista de hábitos
-              usuarioLogado ? <ListarHabitos /> : 
-              // Se não manda para a página de login
-             
-  <Navigate to="/usuario/login" />
+              usuarioLogado ? (
+                <ListarHabitos />
+              ) : (
+                // Se não manda para a página de login
+
+                <Navigate to="/usuario/login" />
+              )
             }
           />
-          <Route 
+          <Route
             path="/habito/alterar/:habitoId"
             element={
               // Se o usuário estiver logado mostra a alteração de hábitos
-              usuarioLogado ? <AlterarHabito /> : 
-              // Se não manda para a página de login
-              <Navigate to="/usuario/login" />
+              usuarioLogado ? (
+                <AlterarHabito />
+              ) : (
+                // Se não manda para a página de login
+                <Navigate to="/usuario/login" />
+              )
             }
           />
-          <Route 
+          <Route
             path="/habitos/cadastrar"
             element={
               // Se o usuário estiver logado mostra a alteração de hábitos
-              usuarioLogado ? <CadastrarHabito /> : 
-     
-          // Se não manda para a página de login
-              <Navigate to="/usuario/login" />
+              usuarioLogado ? (
+                <CadastrarHabito />
+              ) : (
+                // Se não manda para a página de login
+                <Navigate to="/usuario/login" />
+              )
             }
           />
         </Routes>
@@ -95,7 +103,6 @@ function NavWrapper({ usuario, onLogout }: NavProps) {
   function executarLogout() {
     onLogout(); // Limpa o state e o localStorage
     navigate("/usuario/login"); // Redireciona para o login
- 
   }
 
   return (
@@ -104,13 +111,12 @@ function NavWrapper({ usuario, onLogout }: NavProps) {
         {usuario ? (
           // Se logado, mostra o nome e o botão de deslogar
           <>
-              <Link to="/">Meus Hábitos</Link>
-              <Link to="/habitos/cadastrar">Cadastrar Hábitos</Link>
-              <button onClick={executarLogout}>Deslogar</button>
+            <Link to="/">Meus Hábitos</Link>
+            <Link to="/habitos/cadastrar">Cadastrar Hábitos</Link>
+            <button onClick={executarLogout}>Deslogar</button>
           </>
         ) : (
-  
-         // Se não logado, mostra os links de login e cadastro
+          // Se não logado, mostra os links de login e cadastro
           <>
             <li>
               <Link to="/usuario/cadastrar">Cadastro de usuário</Link>
@@ -119,8 +125,7 @@ function NavWrapper({ usuario, onLogout }: NavProps) {
               <Link to="/usuario/login">Login de usuário</Link>
             </li>
           </>
-   
-      )}
+        )}
       </ul>
     </nav>
   );
